@@ -139,7 +139,7 @@ class TextTestResult(result.TestResult):
 
     def addtoErrorLog(self, test, formatted_error):
         self.error_log_stream.writeln(
-            str("%s %s\n%s\n") % (
+            str("{} {}\n{}\n").format(
                 str(self.getDescription(test)),
                 str(formatted_error),
                 str(self.separator2)
@@ -152,7 +152,7 @@ class TextTestResult(result.TestResult):
         be used to re-run the test later.
         """
         if hasattr(errorholder, "_testMethodName"):
-            incantation_string = "%s.%s.%s" % (
+            incantation_string = "{}.{}.{}".format(
                 errorholder.__module__,
                 errorholder.__class__.__name__,
                 errorholder._testMethodName,
@@ -161,7 +161,7 @@ class TextTestResult(result.TestResult):
         else:
             self.addtoErrorLog(
                 errorholder,
-                "NB: %s.%s failed before test methods could run" % (
+                "NB: {}.{} failed before test methods could run".format(
                     errorholder.__module__,
                     errorholder.__class__.__name__
                 )
@@ -175,7 +175,7 @@ class TextTestResult(result.TestResult):
             return str(test)
 
     def format_time(self, time):
-        return ("%02d:%02d:%02d" % (time//3600, time//60, time % 60))
+        return "{:02}:{:02}:{:02}".format(time // 3600, time // 60, time % 60)
 
     @property
     def _elapsed_time(self):
@@ -196,26 +196,26 @@ class TextTestResult(result.TestResult):
         "Return the Error, Failure, Skipped counts as a formatted string."
         return (
             (
-                "%(error_colour)s Errors: %(error_count)i%(clear)s, "
-                "%(fail_colour)s Failures: %(fail_count)i%(clear)s, "
-                " Skipped: %(skip_count)i, "
-                "%(pass_colour)s Passed: %(pass_count)i %(clear)s"
-            ) % {
-                'error_colour': SET_ERROR_TEXT,
-                'fail_colour': SET_FAILURE_TEXT,
-                'pass_colour': SET_PASS_TEXT,
-                'clear': RESET_OUTPUT,
-                'error_count': len(self.errors),
-                'fail_count': len(self.failures),
-                'skip_count': len(self.skipped),
-                'pass_count': (
+                "{error_colour} Errors: {error_count}{clear}, "
+                "{fail_colour} Failures: {fail_count}{clear}, "
+                " Skipped: {skip_count}, "
+                "{pass_colour} Passed: {pass_count} {clear}"
+            ).format(
+                error_colour=SET_ERROR_TEXT,
+                fail_colour=SET_FAILURE_TEXT,
+                pass_colour=SET_PASS_TEXT,
+                clear=RESET_OUTPUT,
+                error_count=len(self.errors),
+                fail_count=len(self.failures),
+                skip_count=len(self.skipped),
+                pass_count=(
                     self.current_test_number
                     - len(self.errors)
                     - len(self.failures)
                     - len(self.skipped)
                     - 1  # to account for the += 1 in startTest
                 )
-            }
+            )
         )
 
     def stopTest(self, test):
@@ -224,7 +224,7 @@ class TextTestResult(result.TestResult):
         if self.slow_test_count:
             # sort the list, then only take the required number
             elapsed = {
-                'name': test.id(), 
+                'name': test.id(),
                 'elapsed': time.time() - self.test_start_time
             }
             self.slow_tests.append(elapsed)
@@ -235,7 +235,7 @@ class TextTestResult(result.TestResult):
 
         if self.showAll:
             self.stream.writeln(
-                "[..%04d <- %04d] Elapsed: %s; Remaining: %s; %s] " % (
+                "[..{:04} <- {:04}] Elapsed: {}; Remaining: {}; {}] ".format(
                     self.current_test_number-1,
                     self.total_tests,
                     self.format_time(self._elapsed_time),
@@ -251,7 +251,7 @@ class TextTestResult(result.TestResult):
 
         if self.showAll:
             self.stream.write(
-                "%s[%04d.. -> %04d]%s " % (
+                "{}[{:04}.. -> {:04}]{} ".format(
                     SET_COUNTER_OUTPUT,
                     self.current_test_number,
                     self.total_tests,
@@ -326,7 +326,7 @@ class TextTestResult(result.TestResult):
     def addSkip(self, test, reason):
         super(TextTestResult, self).addSkip(test, reason)
         if self.showAll:
-            self.stream.writeln("skipped %r" % (reason,))
+            self.stream.writeln("skipped {}".format(reason))
         elif self.dots:
             self.stream.write("s")
             self.stream.flush()
@@ -334,7 +334,7 @@ class TextTestResult(result.TestResult):
         if self.createJunitXml:
             testcase = self._make_testcase_element(test)
             test_result = self.ETree.SubElement(testcase, 'skipped')
-            test_result.set('message', 'Test Skipped: %s' % reason)
+            test_result.set('message', 'Test Skipped: {}'.format(reason))
 
     def addExpectedFailure(self, test, err):
         super(TextTestResult, self).addExpectedFailure(test, err)
@@ -374,11 +374,11 @@ class TextTestResult(result.TestResult):
 
     def printSingleError(self, flavour, test, err):
         self.stream.writeln(self.separator1)
-        self.stream.writeln("%s: %s" % (flavour, self.getDescription(test)))
+        self.stream.writeln("{}: {}".format(flavour, self.getDescription(test)))
         self.stream.writeln(self.separator2)
         # at this point, err is a tuple of:
         # (type, exception, traceback)
-        self.stream.writeln(str("%s") % err)
+        self.stream.writeln(str("{}").format(err))
 
     def stopTestRun(self):
         super(TextTestResult, self).stopTestRun()
@@ -387,10 +387,10 @@ class TextTestResult(result.TestResult):
             run_time_taken = time.time() - self.start_time
             self.tree.set('name', 'Django Project Tests')
             self.tree.set('errors', str(len(self.errors)))
-            self.tree.set('failures' , str(len(self.failures)))
+            self.tree.set('failures', str(len(self.failures)))
             self.tree.set('skips', str(len(self.skipped)))
             self.tree.set('tests', str(self.testsRun))
-            self.tree.set('time', "%.3f" % run_time_taken)
+            self.tree.set('time', "{:.3}".format(run_time_taken))
 
             output = self.ETree.ElementTree(self.tree)
             output.write(self.JUNIT_FILE, encoding="utf-8")
@@ -399,9 +399,9 @@ class TextTestResult(result.TestResult):
 
     def _make_testcase_element(self, test):
         time_taken = time.time() - self.start_time
-        classname = ('%s.%s' % (test.__module__, test.__class__.__name__)).split('.')
+        classname = ('{}.{}'.format(test.__module__, test.__class__.__name__)).split('.')
         testcase = self.ETree.SubElement(self.tree, 'testcase')
-        testcase.set('time', "%.6f" % time_taken)
+        testcase.set('time', "{:.6}".format(time_taken))
         testcase.set('classname', '.'.join(classname))
         testcase.set('name', test._testMethodName)
 
@@ -412,7 +412,7 @@ class TextTestResult(result.TestResult):
 
         exc_class, exc_value, tb = err
         tb_str = self._exc_info_to_string(err, test)
-        test_result.set('type', '%s.%s' % (exc_class.__module__, exc_class.__name__))
+        test_result.set('type', '{}.{}'.format(exc_class.__module__, exc_class.__name__))
         test_result.set('message', str(exc_value))
         test_result.text = tb_str
 
@@ -479,8 +479,8 @@ class TextTestRunner(unittest.TextTestRunner):
         if hasattr(result, 'separator2'):
             self.stream.writeln(result.separator2)
         run = result.testsRun
-        self.stream.writeln("Ran %d test%s in %.3fs" %
-                            (run, run != 1 and "s" or "", timeTaken))
+        self.stream.writeln("Ran {} test{} in {:.3}s".format(
+                            run, run != 1 and "s" or "", timeTaken)
         self.stream.writeln()
 
         expectedFails = unexpectedSuccesses = skipped = 0
@@ -502,19 +502,19 @@ class TextTestRunner(unittest.TextTestRunner):
             self.stream.write(SET_FAIL_OUTPUT + " FAILED " + RESET_OUTPUT)
             failed, errored = list(map(len, (result.failures, result.errors)))
             if failed:
-                infos.append("%sfailures=%d%s" % (SET_FAILURE_TEXT, failed, RESET_OUTPUT))
+                infos.append("{}failures={}{}".format(SET_FAILURE_TEXT, failed, RESET_OUTPUT))
             if errored:
-                infos.append("%serrors=%d%s" % (SET_ERROR_TEXT, errored, RESET_OUTPUT))
+                infos.append("{}errors={}{}".format(SET_ERROR_TEXT, errored, RESET_OUTPUT))
         else:
             self.stream.write(SET_OK_OUTPUT + " OK " + RESET_OUTPUT)
         if skipped:
-            infos.append("skipped=%d" % skipped)
+            infos.append("skipped={}".format(skipped))
         if expectedFails:
-            infos.append("expected failures=%d" % expectedFails)
+            infos.append("expected failures={}".format(expectedFails))
         if unexpectedSuccesses:
-            infos.append("unexpected successes=%d" % unexpectedSuccesses)
+            infos.append("unexpected successes={}".format(unexpectedSuccesses))
         if infos:
-            self.stream.writeln(" (%s)" % (", ".join(infos),))
+            self.stream.writeln(" ({})".format(", ".join(infos)))
         else:
             self.stream.write("\n")
 
