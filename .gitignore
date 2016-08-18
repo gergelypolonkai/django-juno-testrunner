@@ -8,3 +8,5 @@ build
 test_failures.txt
 test_rerun.txt
 junit.xml
+.coverage
+htmlcov
